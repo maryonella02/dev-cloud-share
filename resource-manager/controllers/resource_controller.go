@@ -101,10 +101,12 @@ func (rc *ResourceController) allocateResource(w http.ResponseWriter, r *http.Re
 	// example of payload
 	//{
 	//	"borrower_id": "60a7f8370abf2f3b903bdbb0",
-	//	"resource_request": {
-	//	"resource_type": "CPU",
-	//		"min_capacity": 4
-	//}
+	//		"resource_request": {
+	//		"resource_type": "CPU",
+	//			"min_cpu_cores": 4,
+	//			"min_memory_mb": 1024,
+	//			"min_storage_gb": 50
+	//	}
 	//}
 
 	err := json.NewDecoder(r.Body).Decode(&allocationInfo)

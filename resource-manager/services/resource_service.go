@@ -15,7 +15,9 @@ type ResourceService struct {
 
 type ResourceRequest struct {
 	ResourceType string `json:"resource_type"`
-	MinCapacity  int    `json:"min_capacity"`
+	MinCPUCores  int    `json:"min_cpu_cores"`
+	MinMemoryMB  int    `json:"min_memory_mb"`
+	MinStorageGB int    `json:"min_storage_gb"`
 }
 
 func NewResourceService(db *mongo.Database) *ResourceService {
@@ -47,7 +49,15 @@ func (rs *ResourceService) GetResources() ([]models.Resource, error) {
 func (rs *ResourceService) UpdateResource(resourceID string, updatedResource *models.Resource) error {
 	id, _ := primitive.ObjectIDFromHex(resourceID)
 	filter := bson.M{"_id": id}
-	update := bson.M{"$set": bson.M{"type": updatedResource.Type, "capacity": updatedResource.Capacity, "lender_id": updatedResource.LenderID}}
+	update := bson.M{
+		"$set": bson.M{
+			"type":       updatedResource.Type,
+			"cpu_cores":  updatedResource.CPUCores,
+			"memory_mb":  updatedResource.MemoryMB,
+			"storage_gb": updatedResource.StorageGB,
+			"lender_id":  updatedResource.LenderID,
+		},
+	}
 
 	_, err := rs.db.Collection("resources").UpdateOne(context.Background(), filter, update)
 	return err
@@ -66,8 +76,10 @@ func (rs *ResourceService) AllocateResource(borrowerID string, request ResourceR
 
 	// Find a resource that matches the request
 	filter := bson.M{
-		"type":     request.ResourceType,
-		"capacity": bson.M{"$gte": request.MinCapacity},
+		"type":       request.ResourceType,
+		"cpu_cores":  bson.M{"$gte": request.MinCPUCores},
+		"memory_mb":  bson.M{"$gte": request.MinMemoryMB},
+		"storage_gb": bson.M{"$gte": request.MinStorageGB},
 		"lender_id": bson.M{
 			"$exists": false,
 		},
