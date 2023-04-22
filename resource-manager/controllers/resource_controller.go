@@ -95,22 +95,37 @@ func (rc *ResourceController) deleteResource(w http.ResponseWriter, r *http.Requ
 
 func (rc *ResourceController) allocateResource(w http.ResponseWriter, r *http.Request) {
 	var allocationInfo struct {
-		BorrowerID string `json:"borrower_id"`
-		ResourceID string `json:"resource_id"`
+		BorrowerID      string                   `json:"borrower_id"`
+		ResourceRequest services.ResourceRequest `json:"resource_request"`
 	}
+	// example of payload
+	//{
+	//	"borrower_id": "60a7f8370abf2f3b903bdbb0",
+	//	"resource_request": {
+	//	"resource_type": "CPU",
+	//		"min_capacity": 4
+	//}
+	//}
+
 	err := json.NewDecoder(r.Body).Decode(&allocationInfo)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = rc.resourceService.AllocateResource(allocationInfo.BorrowerID, allocationInfo.ResourceID)
+	allocatedResource, err := rc.resourceService.AllocateResource(allocationInfo.BorrowerID, allocationInfo.ResourceRequest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(allocatedResource)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
 
 func (rc *ResourceController) releaseResource(w http.ResponseWriter, r *http.Request) {

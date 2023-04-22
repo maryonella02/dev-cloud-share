@@ -13,6 +13,11 @@ type ResourceService struct {
 	db *mongo.Database
 }
 
+type ResourceRequest struct {
+	ResourceType string `json:"resource_type"`
+	MinCapacity  int    `json:"min_capacity"`
+}
+
 func NewResourceService(db *mongo.Database) *ResourceService {
 	return &ResourceService{db}
 }
@@ -56,23 +61,40 @@ func (rs *ResourceService) DeleteResource(resourceID string) error {
 	return err
 }
 
-func (rs *ResourceService) AllocateResource(borrowerID string, resourceID string) error {
+func (rs *ResourceService) AllocateResource(borrowerID string, request ResourceRequest) (*models.Resource, error) {
 	bID, _ := primitive.ObjectIDFromHex(borrowerID)
-	rID, _ := primitive.ObjectIDFromHex(resourceID)
 
-	// Find the borrower and update the 'Resources' field
-	borrowerFilter := bson.M{"_id": bID}
-	borrowerUpdate := bson.M{"$push": bson.M{"resources": rID}}
-	_, err := rs.db.Collection("borrowers").UpdateOne(context.Background(), borrowerFilter, borrowerUpdate)
+	// Find a resource that matches the request
+	filter := bson.M{
+		"type":     request.ResourceType,
+		"capacity": bson.M{"$gte": request.MinCapacity},
+		"lender_id": bson.M{
+			"$exists": false,
+		},
+	}
+	var resource models.Resource
+	err := rs.db.Collection("resources").FindOne(context.Background(), filter).Decode(&resource)
 	if err != nil {
-		return err
+		return nil, err
+	}
+
+	// Assign the resource to the borrower
+	borrowerFilter := bson.M{"_id": bID}
+	borrowerUpdate := bson.M{"$push": bson.M{"resources": resource.ID}}
+	_, err = rs.db.Collection("borrowers").UpdateOne(context.Background(), borrowerFilter, borrowerUpdate)
+	if err != nil {
+		return nil, err
 	}
 
 	// Set the 'LenderID' field of the resource to the borrower's ID
-	resourceFilter := bson.M{"_id": rID}
+	resourceFilter := bson.M{"_id": resource.ID}
 	resourceUpdate := bson.M{"$set": bson.M{"lender_id": bID}}
 	_, err = rs.db.Collection("resources").UpdateOne(context.Background(), resourceFilter, resourceUpdate)
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	return &resource, nil
 }
 
 func (rs *ResourceService) ReleaseResource(allocationID string) error {
