@@ -2,11 +2,13 @@ package services
 
 import (
 	"context"
+	"dev-cloud-share/resource-manager/config"
 	"dev-cloud-share/resource-manager/models"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 )
 
 type ResourceService struct {
@@ -15,8 +17,12 @@ type ResourceService struct {
 
 type ResourceRequest struct {
 	ResourceType string `json:"resource_type"`
-	MinCapacity  int    `json:"min_capacity"`
+	MinCPUCores  int    `json:"min_cpu_cores"`
+	MinMemoryMB  int    `json:"min_memory_mb"`
+	MinStorageGB int    `json:"min_storage_gb"`
 }
+
+// TODO: extend this struct further to include other factors such as availability, location, or cost
 
 func NewResourceService(db *mongo.Database) *ResourceService {
 	return &ResourceService{db}
@@ -47,7 +53,15 @@ func (rs *ResourceService) GetResources() ([]models.Resource, error) {
 func (rs *ResourceService) UpdateResource(resourceID string, updatedResource *models.Resource) error {
 	id, _ := primitive.ObjectIDFromHex(resourceID)
 	filter := bson.M{"_id": id}
-	update := bson.M{"$set": bson.M{"type": updatedResource.Type, "capacity": updatedResource.Capacity, "lender_id": updatedResource.LenderID}}
+	update := bson.M{
+		"$set": bson.M{
+			"type":       updatedResource.Type,
+			"cpu_cores":  updatedResource.CPUCores,
+			"memory_mb":  updatedResource.MemoryMB,
+			"storage_gb": updatedResource.StorageGB,
+			"lender_id":  updatedResource.LenderID,
+		},
+	}
 
 	_, err := rs.db.Collection("resources").UpdateOne(context.Background(), filter, update)
 	return err
@@ -66,8 +80,10 @@ func (rs *ResourceService) AllocateResource(borrowerID string, request ResourceR
 
 	// Find a resource that matches the request
 	filter := bson.M{
-		"type":     request.ResourceType,
-		"capacity": bson.M{"$gte": request.MinCapacity},
+		"type":       request.ResourceType,
+		"cpu_cores":  bson.M{"$gte": request.MinCPUCores},
+		"memory_mb":  bson.M{"$gte": request.MinMemoryMB},
+		"storage_gb": bson.M{"$gte": request.MinStorageGB},
 		"lender_id": bson.M{
 			"$exists": false,
 		},
@@ -120,4 +136,50 @@ func (rs *ResourceService) ReleaseResource(allocationID string) error {
 	resourceUpdate := bson.M{"$set": bson.M{"lender_id": nil}}
 	_, err = rs.db.Collection("resources").UpdateOne(context.Background(), resourceFilter, resourceUpdate)
 	return err
+}
+
+func (rs *ResourceService) CalculateCost(resource *models.Resource, duration time.Duration) (float64, error) {
+	// Get pricing config for the resource type
+	var pricingConfig config.PricingConfig
+	for _, pc := range config.PricingModel {
+		if pc.ResourceType == resource.Type {
+			pricingConfig = pc
+			break
+		}
+	}
+
+	hours := duration.Hours()
+	cost := pricingConfig.PricePerCore*float64(resource.CPUCores) +
+		pricingConfig.PricePerMB*float64(resource.MemoryMB) +
+		pricingConfig.PricePerGB*float64(resource.StorageGB)
+
+	return cost * hours, nil
+}
+
+func (rs *ResourceService) CalculateCompensation(resource *models.Resource, duration time.Duration) (float64, error) {
+	ls := NewLenderService(rs.db)
+	reputation, err := ls.GetReputation(resource.LenderID.Hex())
+	if err != nil {
+		return 0, err
+	}
+
+	cost, err := rs.CalculateCost(resource, duration)
+	if err != nil {
+		return 0, err
+	}
+
+	// Calculate reputation bonus
+	reputationBonus := 1.0
+	if reputation >= 100 {
+		reputationBonus = 1.1
+	} else if reputation >= 50 {
+		reputationBonus = 1.05
+	}
+
+	compensation := cost * reputationBonus
+	return compensation, nil
+}
+
+func (rs *ResourceService) ApplyDiscount(cost float64, discountPercentage float64) float64 {
+	return cost * (1 - discountPercentage/100)
 }
