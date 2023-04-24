@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -121,9 +122,36 @@ func (rc *ResourceController) allocateResource(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	usageDuration := time.Duration(allocatedResource.UsageDuration) * time.Minute // assuming UsageDuration is in minutes
+	cost, err := rc.resourceService.CalculateCost(allocatedResource, usageDuration)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	compensation, err := rc.resourceService.CalculateCompensation(allocatedResource, usageDuration)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Apply a 10% discount for new borrowers or during special promotions
+	discountedCost := rc.resourceService.ApplyDiscount(cost, 10)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(allocatedResource)
+	response := struct {
+		Resource       *models.Resource `json:"resource"`
+		Cost           float64          `json:"cost"`
+		DiscountedCost float64          `json:"discounted_cost"`
+		Compensation   float64          `json:"compensation"`
+	}{
+		Resource:       allocatedResource,
+		Cost:           cost,
+		DiscountedCost: discountedCost,
+		Compensation:   compensation,
+	}
+	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
 		fmt.Println(err)
 		return
