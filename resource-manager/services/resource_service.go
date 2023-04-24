@@ -4,6 +4,7 @@ import (
 	"context"
 	"dev-cloud-share/resource-manager/config"
 	"dev-cloud-share/resource-manager/models"
+	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -75,6 +76,8 @@ func (rs *ResourceService) DeleteResource(resourceID string) error {
 	return err
 }
 
+var ErrResourceNotFound = errors.New("no suitable resource found")
+
 func (rs *ResourceService) AllocateResource(borrowerID string, request ResourceRequest) (*models.Resource, error) {
 	bID, _ := primitive.ObjectIDFromHex(borrowerID)
 
@@ -84,27 +87,23 @@ func (rs *ResourceService) AllocateResource(borrowerID string, request ResourceR
 		"cpu_cores":  bson.M{"$gte": request.MinCPUCores},
 		"memory_mb":  bson.M{"$gte": request.MinMemoryMB},
 		"storage_gb": bson.M{"$gte": request.MinStorageGB},
-		"lender_id": bson.M{
-			"$exists": false,
+		"$or": []bson.M{
+			{"borrower_id": bson.M{"$exists": false}},
+			{"borrower_id": primitive.ObjectID{}},
 		},
 	}
 	var resource models.Resource
 	err := rs.db.Collection("resources").FindOne(context.Background(), filter).Decode(&resource)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, ErrResourceNotFound
+		}
 		return nil, err
 	}
 
 	// Assign the resource to the borrower
-	borrowerFilter := bson.M{"_id": bID}
-	borrowerUpdate := bson.M{"$push": bson.M{"resources": resource.ID}}
-	_, err = rs.db.Collection("borrowers").UpdateOne(context.Background(), borrowerFilter, borrowerUpdate)
-	if err != nil {
-		return nil, err
-	}
-
-	// Set the 'LenderID' field of the resource to the borrower's ID
 	resourceFilter := bson.M{"_id": resource.ID}
-	resourceUpdate := bson.M{"$set": bson.M{"lender_id": bID}}
+	resourceUpdate := bson.M{"$set": bson.M{"borrower_id": bID}}
 	_, err = rs.db.Collection("resources").UpdateOne(context.Background(), resourceFilter, resourceUpdate)
 	if err != nil {
 		return nil, err
@@ -203,4 +202,16 @@ func (rs *ResourceService) CalculateCompensation(resource *models.Resource, dura
 
 func (rs *ResourceService) ApplyDiscount(cost float64, discountPercentage float64) float64 {
 	return cost * (1 - discountPercentage/100)
+}
+func (rs *ResourceService) CreateBorrower(borrower models.Borrower) (*models.Borrower, error) {
+	borrower.ID = primitive.NewObjectID()
+	res, err := rs.db.Collection("borrowers").InsertOne(context.Background(), borrower)
+	if err != nil {
+		return nil, err
+	}
+
+	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
+		borrower.ID = oid
+	}
+	return &borrower, nil
 }

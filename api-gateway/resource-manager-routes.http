@@ -42,3 +42,11 @@ Content-Type: application/json
 
 ### Release a resource
 DELETE http://localhost:8081/api/v1/allocations/{{allocation_id}}
+
+### Create borrower
+POST http://localhost:8081/api/v1/borrowers
+Content-Type: application/json
+
+{
+    "name": "example_type"
+}

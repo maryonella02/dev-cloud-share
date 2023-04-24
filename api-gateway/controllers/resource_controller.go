@@ -22,11 +22,17 @@ func (rc *ResourceController) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/resources/{resource_id}", rc.deleteResource).Methods("DELETE")
 	router.HandleFunc("/allocations", rc.allocateResource).Methods("POST")
 	router.HandleFunc("/allocations/{allocation_id}", rc.releaseResource).Methods("DELETE")
+	router.HandleFunc("/borrowers", rc.createBorrower).Methods("POST")
+
 }
 
 func (rc *ResourceController) registerResource(w http.ResponseWriter, r *http.Request) {
 	endpoint := "/resources"
-	rc.resourceService.ProxyRequest(w, r, endpoint, "POST")
+	err := rc.resourceService.ProxyRequest(w, r, endpoint, "POST")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
 
 func (rc *ResourceController) getResources(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +76,14 @@ func (rc *ResourceController) releaseResource(w http.ResponseWriter, r *http.Req
 	allocationID := vars["allocation_id"]
 	endpoint := fmt.Sprintf("/allocations/%s", allocationID)
 	err := rc.resourceService.ProxyRequest(w, r, endpoint, "DELETE")
+	if err != nil {
+		return
+	}
+}
+
+func (rc *ResourceController) createBorrower(w http.ResponseWriter, r *http.Request) {
+	endpoint := "/borrowers"
+	err := rc.resourceService.ProxyRequest(w, r, endpoint, "POST")
 	if err != nil {
 		return
 	}

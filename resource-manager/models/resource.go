@@ -13,11 +13,10 @@ type Resource struct {
 	StorageGB     int                `bson:"storage_gb" json:"storage_gb"`
 	UsageDuration time.Duration
 	LenderID      primitive.ObjectID `bson:"lender_id,omitempty" json:"lender_id,omitempty"`
+	BorrowerID    primitive.ObjectID `bson:"borrower_id,omitempty" json:"borrower_id,omitempty"`
 }
 
 type Borrower struct {
-	ID          primitive.ObjectID   `bson:"_id,omitempty" json:"id,omitempty"`
-	Name        string               `bson:"name" json:"name"`
-	ContactInfo string               `bson:"contact_info" json:"contact_info"`
-	Resources   []primitive.ObjectID `bson:"resources,omitempty" json:"resources,omitempty"`
+	ID   primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Name string             `bson:"name" json:"name"`
 }
