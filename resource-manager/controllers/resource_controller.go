@@ -20,15 +20,15 @@ func NewResourceController(resourceService *services.ResourceService) *ResourceC
 }
 
 func (rc *ResourceController) RegisterRoutes(router *mux.Router) {
-	router.HandleFunc("/resources", rc.registerResource).Methods("POST")
-	router.HandleFunc("/resources", rc.getResources).Methods("GET")
-	router.HandleFunc("/resources/{resource_id}", rc.updateResource).Methods("PUT")
-	router.HandleFunc("/resources/{resource_id}", rc.deleteResource).Methods("DELETE")
-	router.HandleFunc("/allocations", rc.allocateResource).Methods("POST")
-	router.HandleFunc("/allocations/{allocation_id}", rc.releaseResource).Methods("DELETE")
+	router.HandleFunc("/resources", rc.RegisterResource).Methods("POST")
+	router.HandleFunc("/resources", rc.GetResources).Methods("GET")
+	router.HandleFunc("/resources/{resource_id}", rc.UpdateResource).Methods("PUT")
+	router.HandleFunc("/resources/{resource_id}", rc.DeleteResource).Methods("DELETE")
+	router.HandleFunc("/allocations", rc.AllocateResource).Methods("POST")
+	router.HandleFunc("/allocations/{allocation_id}", rc.ReleaseResource).Methods("DELETE")
 }
 
-func (rc *ResourceController) registerResource(w http.ResponseWriter, r *http.Request) {
+func (rc *ResourceController) RegisterResource(w http.ResponseWriter, r *http.Request) {
 	var resource models.Resource
 	err := json.NewDecoder(r.Body).Decode(&resource)
 	if err != nil {
@@ -50,7 +50,7 @@ func (rc *ResourceController) registerResource(w http.ResponseWriter, r *http.Re
 	}
 }
 
-func (rc *ResourceController) getResources(w http.ResponseWriter, r *http.Request) {
+func (rc *ResourceController) GetResources(w http.ResponseWriter, r *http.Request) {
 	resources, err := rc.resourceService.GetResources()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -65,7 +65,7 @@ func (rc *ResourceController) getResources(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (rc *ResourceController) updateResource(w http.ResponseWriter, r *http.Request) {
+func (rc *ResourceController) UpdateResource(w http.ResponseWriter, r *http.Request) {
 	var updatedResource models.Resource
 	err := json.NewDecoder(r.Body).Decode(&updatedResource)
 	if err != nil {
@@ -83,7 +83,7 @@ func (rc *ResourceController) updateResource(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusOK)
 }
 
-func (rc *ResourceController) deleteResource(w http.ResponseWriter, r *http.Request) {
+func (rc *ResourceController) DeleteResource(w http.ResponseWriter, r *http.Request) {
 	resourceID := mux.Vars(r)["resource_id"]
 	err := rc.resourceService.DeleteResource(resourceID)
 	if err != nil {
@@ -94,7 +94,7 @@ func (rc *ResourceController) deleteResource(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusOK)
 }
 
-func (rc *ResourceController) allocateResource(w http.ResponseWriter, r *http.Request) {
+func (rc *ResourceController) AllocateResource(w http.ResponseWriter, r *http.Request) {
 	var allocationInfo struct {
 		BorrowerID      string                   `json:"borrower_id"`
 		ResourceRequest services.ResourceRequest `json:"resource_request"`
@@ -158,7 +158,7 @@ func (rc *ResourceController) allocateResource(w http.ResponseWriter, r *http.Re
 	}
 }
 
-func (rc *ResourceController) releaseResource(w http.ResponseWriter, r *http.Request) {
+func (rc *ResourceController) ReleaseResource(w http.ResponseWriter, r *http.Request) {
 	allocationID := mux.Vars(r)["allocation_id"]
 	err := rc.resourceService.ReleaseResource(allocationID)
 	if err != nil {
