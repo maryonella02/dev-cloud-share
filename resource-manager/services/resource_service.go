@@ -110,6 +110,18 @@ func (rs *ResourceService) AllocateResource(borrowerID string, request ResourceR
 		return nil, err
 	}
 
+	// Create a new ResourceUsage entry
+	resourceUsage := &models.ResourceUsage{
+		ResourceID: resource.ID,
+		BorrowerID: bID,
+		StartTime:  time.Now(),
+	}
+
+	// Insert the ResourceUsage entry into the database
+	_, err = rs.db.Collection("resource_usages").InsertOne(context.Background(), resourceUsage)
+	if err != nil {
+		return nil, err
+	}
 	return &resource, nil
 }
 
@@ -135,6 +147,15 @@ func (rs *ResourceService) ReleaseResource(allocationID string) error {
 	// Clear the 'LenderID' field of the resource
 	resourceUpdate := bson.M{"$set": bson.M{"lender_id": nil}}
 	_, err = rs.db.Collection("resources").UpdateOne(context.Background(), resourceFilter, resourceUpdate)
+
+	// Update the ResourceUsage entry for the released resource
+	usageFilter := bson.M{"resource_id": resourceID, "end_time": bson.M{"$exists": false}}
+	usageUpdate := bson.M{"$set": bson.M{"end_time": time.Now()}}
+	_, err = rs.db.Collection("resource_usages").UpdateOne(context.Background(), usageFilter, usageUpdate)
+	if err != nil {
+		return err
+	}
+
 	return err
 }
 
