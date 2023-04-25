@@ -35,12 +35,7 @@ func (rs *ResourceService) ProxyRequest(w http.ResponseWriter, r *http.Request, 
 	if err != nil {
 		return err
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
-		if err != nil {
-			fmt.Println(err)
-		}
-	}(resp.Body)
+	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -53,6 +48,7 @@ func (rs *ResourceService) ProxyRequest(w http.ResponseWriter, r *http.Request, 
 
 	// Copy the status code from the resource-manager response
 	w.WriteHeader(resp.StatusCode)
+	w.Write(body)
 
 	var result interface{}
 	err = json.Unmarshal(body, &result)

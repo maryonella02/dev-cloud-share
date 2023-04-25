@@ -37,7 +37,7 @@ var allocateCmd = &cobra.Command{
 			BorrowerID      string          `json:"borrower_id"`
 			ResourceRequest ResourceRequest `json:"resource_request"`
 		}
-		//allocationInfo.BorrowerID = "1"
+		allocationInfo.BorrowerID = "6446df1322b3d57d49cc2264"
 		// TODO: add normal borrowerID identification and allocation
 		allocationInfo.ResourceRequest = ResourceRequest{
 			ResourceType: resourceType,
@@ -61,12 +61,6 @@ var allocateCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer func(Body io.ReadCloser) {
-			err := Body.Close()
-			if err != nil {
-
-			}
-		}(resp.Body)
 
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
@@ -74,12 +68,13 @@ var allocateCmd = &cobra.Command{
 			fmt.Println(err)
 			return err
 		}
+		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("failed to allocate resource: %s", string(body))
+			return fmt.Errorf("failed to allocate resource: %s for body %s", string(body), string(requestJSON))
 		}
 
-		fmt.Printf("Resource allocated successfully: %s\n", string(body))
+		fmt.Printf("Resource allocated successfully!")
 		return nil
 	},
 }
