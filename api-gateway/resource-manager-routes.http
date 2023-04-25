@@ -31,22 +31,31 @@ POST http://localhost:8081/api/v1/allocations
 Content-Type: application/json
 
 {
-  "borrower_id": "{{borrower_id}}",
+  "borrower_id": "6446df1322b3d57d49cc2264",
   "resource_request": {
     "resource_type": "example_type",
-    "min_cpu_cores": 2,
-    "min_memory_mb": 4096,
-    "min_storage_gb": 50
+    "min_cpu_cores": 4,
+    "min_memory_mb": 8192,
+    "min_storage_gb": 100
   }
 }
 
 ### Release a resource
-DELETE http://localhost:8081/api/v1/allocations/{{allocation_id}}
+DELETE http://localhost:8081/api/v1/allocations/6447e82ed4e0efa0cf66a8ed
 
 ### Create borrower
 POST http://localhost:8081/api/v1/borrowers
 Content-Type: application/json
 
 {
-    "name": "example_type"
+    "name": "default_borrower"
 }
+
+### Create lender
+POST http://localhost:8081/api/v1/lenders
+Content-Type: application/json
+
+{
+  "name": "default_lender"
+}
+

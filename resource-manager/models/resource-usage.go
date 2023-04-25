@@ -11,6 +11,6 @@ type ResourceUsage struct {
 	BorrowerID   primitive.ObjectID `bson:"borrower_id" json:"borrower_id"`
 	StartTime    time.Time          `bson:"start_time" json:"start_time"`
 	EndTime      *time.Time         `bson:"end_time,omitempty" json:"end_time,omitempty"`
-	TotalUsage   float64            `bson:"total_usage,omitempty" json:"total_usage,omitempty"`
+	Cost         float64            `bson:"cost,omitempty" json:"cost,omitempty"`
 	Compensation float64            `bson:"compensation,omitempty" json:"compensation,omitempty"`
 }

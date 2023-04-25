@@ -23,7 +23,7 @@ func (rc *ResourceController) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/allocations", rc.allocateResource).Methods("POST")
 	router.HandleFunc("/allocations/{allocation_id}", rc.releaseResource).Methods("DELETE")
 	router.HandleFunc("/borrowers", rc.createBorrower).Methods("POST")
-
+	router.HandleFunc("/lenders", rc.createLender).Methods("POST")
 }
 
 func (rc *ResourceController) registerResource(w http.ResponseWriter, r *http.Request) {
@@ -83,6 +83,14 @@ func (rc *ResourceController) releaseResource(w http.ResponseWriter, r *http.Req
 
 func (rc *ResourceController) createBorrower(w http.ResponseWriter, r *http.Request) {
 	endpoint := "/borrowers"
+	err := rc.resourceService.ProxyRequest(w, r, endpoint, "POST")
+	if err != nil {
+		return
+	}
+}
+
+func (rc *ResourceController) createLender(w http.ResponseWriter, r *http.Request) {
+	endpoint := "/lenders"
 	err := rc.resourceService.ProxyRequest(w, r, endpoint, "POST")
 	if err != nil {
 		return
