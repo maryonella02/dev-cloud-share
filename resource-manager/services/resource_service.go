@@ -156,9 +156,29 @@ func (rs *ResourceService) ReleaseResource(resourceID string) (*models.Resource,
 		return nil, err
 	}
 
+	fmt.Println(fmt.Sprintf("Cost: %f; Compensation: %f", cost, compensation))
+
 	// Update the ResourceUsage entry with the calculated cost, compensation, and end time
 	usageUpdate := bson.M{"$set": bson.M{"end_time": time.Now(), "cost": cost, "compensation": compensation}}
 	_, err = rs.db.Collection("resource_usages").UpdateOne(context.Background(), usageFilter, usageUpdate)
+	if err != nil {
+		return nil, err
+	}
+
+	// Retrieve the lender associated with the resource
+	lenderFilter := bson.M{"_id": resource.LenderID}
+	var lender models.Lender
+	err = rs.db.Collection("lenders").FindOne(context.Background(), lenderFilter).Decode(&lender)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update the lender's reputation by adding 1
+	lender.Reputation++
+
+	// Save the updated lender to the database
+	lenderUpdate := bson.M{"$set": bson.M{"reputation": lender.Reputation}}
+	_, err = rs.db.Collection("lenders").UpdateOne(context.Background(), lenderFilter, lenderUpdate)
 	if err != nil {
 		return nil, err
 	}
