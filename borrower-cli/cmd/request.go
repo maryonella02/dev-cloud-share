@@ -35,6 +35,8 @@ type ResourceRequest struct {
 	MinStorageGB int    `json:"min_storage_gb"`
 }
 
+const APIAllocationsURL = "http://localhost:8081/api/v1/allocations"
+
 var requestCmd = &cobra.Command{
 	Use:   "request",
 	Short: "Request resources from the Resource Manager",
@@ -60,12 +62,10 @@ var requestCmd = &cobra.Command{
 		}
 
 		fmt.Printf("Requesting resources: Type: %s, CPU Cores: %d, Memory: %d MB, Storage: %d GB\n", resourceType, minCPUCores, minMemoryMB, minStorageGB)
-		// Replace this URL with the API Gateway URL for the allocations endpoint
-		url := "http://localhost:8081/api/v1/allocations"
 
 		client := &http.Client{}
 		requestJSON, _ := json.Marshal(allocationInfo)
-		req, err := http.NewRequest("POST", url, bytes.NewReader(requestJSON))
+		req, err := http.NewRequest("POST", APIAllocationsURL, bytes.NewReader(requestJSON))
 		if err != nil {
 			return err
 		}
