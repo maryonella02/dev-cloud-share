@@ -2,9 +2,8 @@ package services
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -38,17 +37,18 @@ func (rs *ResourceService) ProxyRequest(w http.ResponseWriter, r *http.Request, 
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("Response status:", resp.Status)
+	fmt.Println("Response body:", string(body))
 	fmt.Println("Response headers:", resp.Header)
 
-	if resp.StatusCode != http.StatusOK {
-		return errors.New(string(body))
-	}
+	// Copy the status code from the resource-manager response
+	w.WriteHeader(resp.StatusCode)
+	w.Write(body)
 
 	var result interface{}
 	err = json.Unmarshal(body, &result)
@@ -56,6 +56,10 @@ func (rs *ResourceService) ProxyRequest(w http.ResponseWriter, r *http.Request, 
 		return err
 	}
 
-	json.NewEncoder(w).Encode(result)
+	err = json.NewEncoder(w).Encode(result)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 	return nil
 }

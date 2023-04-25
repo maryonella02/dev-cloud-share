@@ -5,10 +5,8 @@ import (
 	"dev-cloud-share/resource-manager/services"
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"time"
-
 	"github.com/gorilla/mux"
+	"net/http"
 )
 
 type ResourceController struct {
@@ -25,7 +23,7 @@ func (rc *ResourceController) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/resources/{resource_id}", rc.UpdateResource).Methods("PUT")
 	router.HandleFunc("/resources/{resource_id}", rc.DeleteResource).Methods("DELETE")
 	router.HandleFunc("/allocations", rc.AllocateResource).Methods("POST")
-	router.HandleFunc("/allocations/{allocation_id}", rc.ReleaseResource).Methods("DELETE")
+	router.HandleFunc("/allocations/{resource_id}", rc.ReleaseResource).Methods("DELETE")
 }
 
 func (rc *ResourceController) RegisterResource(w http.ResponseWriter, r *http.Request) {
@@ -116,41 +114,14 @@ func (rc *ResourceController) AllocateResource(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	allocatedResource, err := rc.resourceService.AllocateResource(allocationInfo.BorrowerID, allocationInfo.ResourceRequest)
+	response, err := rc.resourceService.AllocateResource(allocationInfo.BorrowerID, allocationInfo.ResourceRequest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	usageDuration := time.Duration(allocatedResource.UsageDuration) * time.Minute // assuming UsageDuration is in minutes
-	cost, err := rc.resourceService.CalculateCost(allocatedResource, usageDuration)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	compensation, err := rc.resourceService.CalculateCompensation(allocatedResource, usageDuration)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Apply a 10% discount for new borrowers or during special promotions
-	discountedCost := rc.resourceService.ApplyDiscount(cost, 10)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	response := struct {
-		Resource       *models.Resource `json:"resource"`
-		Cost           float64          `json:"cost"`
-		DiscountedCost float64          `json:"discounted_cost"`
-		Compensation   float64          `json:"compensation"`
-	}{
-		Resource:       allocatedResource,
-		Cost:           cost,
-		DiscountedCost: discountedCost,
-		Compensation:   compensation,
-	}
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
 		fmt.Println(err)
@@ -159,12 +130,24 @@ func (rc *ResourceController) AllocateResource(w http.ResponseWriter, r *http.Re
 }
 
 func (rc *ResourceController) ReleaseResource(w http.ResponseWriter, r *http.Request) {
-	allocationID := mux.Vars(r)["allocation_id"]
-	err := rc.resourceService.ReleaseResource(allocationID)
+	resourceID := mux.Vars(r)["resource_id"]
+
+	releasedResource, err := rc.resourceService.ReleaseResource(resourceID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	response := struct {
+		Resource *models.Resource `json:"resource"`
+	}{
+		Resource: releasedResource,
+	}
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }

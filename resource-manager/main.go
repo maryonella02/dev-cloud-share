@@ -27,12 +27,15 @@ func main() {
 	resourceService := services.NewResourceService(db)
 	resourceController := controllers.NewResourceController(resourceService)
 
+	borrowerController := controllers.NewBorrowerController(resourceService)
+
 	// Create indexes for better performance
 	createIndexes(db)
 
 	// Set up the HTTP server and routes
 	router := mux.NewRouter()
 	resourceController.RegisterRoutes(router)
+	router.HandleFunc("/borrowers", borrowerController.CreateBorrower).Methods(http.MethodPost)
 
 	log.Println("Resource Manager is running on :8080")
 	err = http.ListenAndServe(":8080", router)
