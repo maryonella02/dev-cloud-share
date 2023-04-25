@@ -43,8 +43,9 @@ var lendCmd = &cobra.Command{
 			CPUCores:     cpuCores,
 			MemoryMB:     memoryMB,
 			StorageGB:    storageGB,
-			//LenderID: "",
+			LenderID:     "6447e7e8d4e0efa0cf66a8ec",
 		}
+		// TODO: add normal lender auth
 
 		fmt.Printf("Lending resources: Type: %s, CPU Cores: %d, Memory: %d MB, Storage: %d GB\n", resourceType, cpuCores, memoryMB, storageGB)
 

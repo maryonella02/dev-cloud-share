@@ -232,3 +232,15 @@ func (rs *ResourceService) CreateBorrower(borrower models.Borrower) (*models.Bor
 	}
 	return &borrower, nil
 }
+func (rs *ResourceService) CreateLender(lender models.Lender) (*models.Lender, error) {
+	lender.ID = primitive.NewObjectID()
+	res, err := rs.db.Collection("lenders").InsertOne(context.Background(), lender)
+	if err != nil {
+		return nil, err
+	}
+
+	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
+		lender.ID = oid
+	}
+	return &lender, nil
+}
