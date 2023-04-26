@@ -1,0 +1,28 @@
+### Create container
+POST http://localhost:8081/api/v1/containers
+Content-Type: application/json
+
+{
+  "image": "nginx:latest",
+  "command": [],
+  "environment": {
+    "ENV_VAR1": "value1",
+    "ENV_VAR2": "value2"
+  }
+}
+
+
+### Start Container
+POST http://localhost:8081/api/v1/containers/656879d66e3ea94b2d0988210868f04a848f982deca12a0f2e5b5e9913faad63/start
+
+### Stop Container
+POST http://localhost:8081/api/v1/containers/656879d66e3ea94b2d0988210868f04a848f982deca12a0f2e5b5e9913faad63/stop
+
+### Remove Container
+POST http://localhost:8081/api/v1/containers/656879d66e3ea94b2d0988210868f04a848f982deca12a0f2e5b5e9913faad63/remove
+
+### Get Container Status
+GET http://localhost:8081/api/v1/containers/656879d66e3ea94b2d0988210868f04a848f982deca12a0f2e5b5e9913faad63/status
+
+
+
