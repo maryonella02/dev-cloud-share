@@ -1,0 +1,28 @@
+### Create container
+POST http://localhost:8082/containers
+Content-Type: application/json
+
+{
+  "image": "nginx:latest",
+  "command": [],
+  "environment": {
+    "ENV_VAR1": "value1",
+    "ENV_VAR2": "value2"
+  }
+}
+
+
+### Start Container
+POST http://localhost:8082/containers/168d21676e9c5e588f7a95ebf2649b18da283626c08fedf54f054f06a32b6794/start
+
+### Stop Container
+POST http://localhost:8082/containers/168d21676e9c5e588f7a95ebf2649b18da283626c08fedf54f054f06a32b6794/stop
+
+### Remove Container
+POST http://localhost:8082/containers/168d21676e9c5e588f7a95ebf2649b18da283626c08fedf54f054f06a32b6794/remove
+
+### Get Container Status
+GET http://localhost:8082/containers/168d21676e9c5e588f7a95ebf2649b18da283626c08fedf54f054f06a32b6794/status
+
+
+
