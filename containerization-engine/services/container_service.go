@@ -26,6 +26,8 @@ func NewContainerService() (*ContainerService, error) {
 func (cs *ContainerService) CreateContainer(config models.ContainerConfig) (string, error) {
 	ctx := context.Background()
 
+	// TODO: allow pulling private images. Use https://goharbor.io/
+
 	_, err := cs.cli.ImagePull(ctx, config.Image, types.ImagePullOptions{})
 	if err != nil {
 		return "", err
