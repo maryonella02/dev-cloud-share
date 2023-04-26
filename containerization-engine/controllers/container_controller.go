@@ -1,70 +1,112 @@
 package controllers
 
 import (
-	"context"
-	"errors"
+	"dev-cloud-share/containerization-engine/models"
+	"dev-cloud-share/containerization-engine/services"
+	"encoding/json"
+	"io"
+	"net/http"
 
-	"github.com/docker/docker/api/types"
-	dockerContainer "github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/client"
+	"github.com/gorilla/mux"
 )
 
 type ContainerController struct {
-	cli *client.Client
+	containerService *services.ContainerService
 }
 
-func NewContainerController() (*ContainerController, error) {
-	cli, err := client.NewClientWithOpts(client.FromEnv)
+func NewContainerController(containerService *services.ContainerService) *ContainerController {
+	return &ContainerController{containerService}
+}
+
+func (c *ContainerController) CreateContainer(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		return nil, err
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	return &ContainerController{cli: cli}, nil
-}
+	var containerConfig models.ContainerConfig
+	if err := json.Unmarshal(body, &containerConfig); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-func (c *ContainerController) CreateContainer(image string, config *dockerContainer.Config, hostConfig *dockerContainer.HostConfig) (string, error) {
-	ctx := context.Background()
-
-	// Pull the image from Docker Hub if not available locally
-	_, err := c.cli.ImagePull(ctx, image, types.ImagePullOptions{})
+	containerID, err := c.containerService.CreateContainer(containerConfig)
 	if err != nil {
-		return "", err
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	// Create the dockerContainer
-	resp, err := c.cli.ContainerCreate(ctx, config, hostConfig, nil, nil, "")
+	response := struct {
+		ID string `json:"id"`
+	}{
+		ID: containerID,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (c *ContainerController) StartContainer(w http.ResponseWriter, r *http.Request) {
+	containerID := mux.Vars(r)["id"]
+
+	if err := c.containerService.StartContainer(containerID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (c *ContainerController) StopContainer(w http.ResponseWriter, r *http.Request) {
+	containerID := mux.Vars(r)["id"]
+
+	if err := c.containerService.StopContainer(containerID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (c *ContainerController) RemoveContainer(w http.ResponseWriter, r *http.Request) {
+	containerID := mux.Vars(r)["id"]
+
+	if err := c.containerService.RemoveContainer(containerID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (c *ContainerController) GetContainerStatus(w http.ResponseWriter, r *http.Request) {
+	containerID := mux.Vars(r)["id"]
+
+	status, err := c.containerService.GetContainerStatus(containerID)
 	if err != nil {
-		return "", err
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	return resp.ID, nil
-}
-
-func (c *ContainerController) StartContainer(containerID string) error {
-	ctx := context.Background()
-	return c.cli.ContainerStart(ctx, containerID, types.ContainerStartOptions{})
-}
-
-func (c *ContainerController) StopContainer(containerID string) error {
-	ctx := context.Background()
-	return c.cli.ContainerStop(ctx, containerID, dockerContainer.StopOptions{})
-}
-
-func (c *ContainerController) RemoveContainer(containerID string) error {
-	ctx := context.Background()
-	return c.cli.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{})
-}
-
-func (c *ContainerController) GetContainerStatus(containerID string) (string, error) {
-	ctx := context.Background()
-	container, err := c.cli.ContainerInspect(ctx, containerID)
-	if err != nil {
-		return "", err
+	response := struct {
+		Status string `json:"status"`
+	}{
+		Status: status,
 	}
 
-	if !container.State.Running && container.State.Error != "" {
-		return container.State.Error, errors.New("dockerContainer error")
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
 
-	return container.State.Status, nil
+func (c *ContainerController) RegisterRoutes(router *mux.Router) {
+	router.HandleFunc("/containers", c.CreateContainer).Methods("POST")
+	router.HandleFunc("/containers/{id}/start", c.StartContainer).Methods("POST")
+	router.HandleFunc("/containers/{id}/stop", c.StopContainer).Methods("POST")
+	router.HandleFunc("/containers/{id}/remove", c.RemoveContainer).Methods("POST")
+	router.HandleFunc("/containers/{id}/status", c.GetContainerStatus).Methods("GET")
 }
