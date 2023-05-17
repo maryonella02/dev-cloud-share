@@ -45,7 +45,7 @@ func main() {
 	// Start server in a separate goroutine
 	go func() {
 		fmt.Println("Starting server on port 8443")
-		err = server.ListenAndServeTLS("server.crt", "server.key")
+		err = server.ListenAndServeTLS("./../cert.pem", "./../key.pem")
 		if err != nil {
 			log.Fatal(err)
 		}
