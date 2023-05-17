@@ -1,0 +1,24 @@
+###
+### Register User
+###
+
+POST http://localhost:8083/register
+Content-Type: application/json
+
+{
+  "username": "john_doe",
+  "password": "secretpassword"
+}
+
+
+###
+### Login User
+###
+
+POST http://localhost:8083/login
+Content-Type: application/json
+
+{
+  "username": "john_doe",
+  "password": "secretpassword"
+}

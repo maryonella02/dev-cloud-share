@@ -11,6 +11,7 @@ import (
 const (
 	resourceManagerBaseURL        = "http://localhost:8080"
 	containerizationEngineBaseURL = "http://localhost:8082"
+	authServiceBaseURL            = "http://localhost:8083"
 )
 
 func main() {
