@@ -38,14 +38,14 @@ func main() {
 
 	// Set up server
 	server := &http.Server{
-		Addr:    ":8083",
+		Addr:    ":8443",
 		Handler: router,
 	}
 
 	// Start server in a separate goroutine
 	go func() {
-		fmt.Println("Starting server on port 8083")
-		err := server.ListenAndServe()
+		fmt.Println("Starting server on port 8443")
+		err = server.ListenAndServeTLS("server.crt", "server.key")
 		if err != nil {
 			log.Fatal(err)
 		}
