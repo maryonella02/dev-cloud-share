@@ -31,7 +31,11 @@ func (ac *Controller) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	registeredUser, err := ac.authService.RegisterUser(r.Context(), &user)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		if err.Error() == "invalid email address" {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 

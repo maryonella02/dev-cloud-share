@@ -3,6 +3,7 @@ package services
 import (
 	"auth/models"
 	"context"
+	"errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
@@ -18,6 +19,16 @@ func NewAuthService(client *mongo.Client) *Service {
 }
 
 func (s *Service) RegisterUser(ctx context.Context, user *models.User) (*models.User, error) {
+	// Check if the email is already in use
+	var existingUser models.User
+	err := s.db.FindOne(ctx, bson.M{"email": user.Email}).Decode(&existingUser)
+	if err != nil && err != mongo.ErrNoDocuments {
+		return nil, err
+	}
+	if existingUser.Email != "" {
+		return nil, errors.New("invalid email address")
+	}
+
 	hashedPassword, err := hashPassword(user.Password)
 	if err != nil {
 		return nil, err
@@ -30,8 +41,6 @@ func (s *Service) RegisterUser(ctx context.Context, user *models.User) (*models.
 		return nil, err
 	}
 
-	// Clear the password before returning the user object
-	user.Password = ""
 	return user, nil
 }
 
