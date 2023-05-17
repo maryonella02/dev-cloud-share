@@ -36,7 +36,7 @@ func removeContainer(containerIDFlag string) {
 		containerID = containerIDFlag
 	}
 
-	apiUrl := fmt.Sprintf("http://localhost:8081/api/v1/containers/%s/remove", containerID)
+	apiUrl := fmt.Sprintf("https://localhost:8440/api/v1/containers/%s/remove", containerID)
 	req, err := http.NewRequest("POST", apiUrl, nil)
 	if err != nil {
 		fmt.Println("Error creating request:", err)

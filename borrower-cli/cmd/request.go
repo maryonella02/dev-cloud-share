@@ -35,7 +35,7 @@ type ResourceRequest struct {
 	MinStorageGB int    `json:"min_storage_gb"`
 }
 
-const APIAllocationsURL = "http://localhost:8081/api/v1/allocations"
+const APIAllocationsURL = "https://localhost:8440/api/v1/allocations"
 
 var requestCmd = &cobra.Command{
 	Use:   "request",

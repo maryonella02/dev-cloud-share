@@ -55,7 +55,7 @@ var lendCmd = &cobra.Command{
 }
 
 func registerResource(resource Resource) {
-	apiGatewayURL := "http://localhost:8081/api/v1/resources"
+	apiGatewayURL := "https://localhost:8440/api/v1/resources"
 
 	// Marshal the resource data into JSON
 	jsonData, err := json.Marshal(resource)
