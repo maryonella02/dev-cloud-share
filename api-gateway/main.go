@@ -5,29 +5,38 @@ import (
 	"api-gateway/services"
 	"fmt"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 )
 
 const (
 	resourceManagerBaseURL        = "http://localhost:8080"
 	containerizationEngineBaseURL = "http://localhost:8082"
-	authServiceBaseURL            = "http://localhost:8083"
+	authServiceBaseURL            = "https://localhost:8443"
 )
 
 func main() {
 	router := mux.NewRouter()
 
+	authService := services.NewAuthService(authServiceBaseURL)
+	authController := controllers.NewAuthController(authService)
+	authController.RegisterRoutes(router.PathPrefix("/api/v1").Subrouter())
+
 	resourceService := services.NewResourceService(resourceManagerBaseURL)
 	resourceController := controllers.NewResourceController(resourceService)
-	resourceController.RegisterRoutes(router.PathPrefix("/api/v1").Subrouter())
+	resourceSubRouter := router.PathPrefix("/api/v1").Subrouter()
+	resourceSubRouter.Use(authController.JwtAuthMiddleware) // Apply the middleware to resource routes
+
+	resourceController.RegisterRoutes(resourceSubRouter)
 
 	containerizationEngineService := services.NewContainerizationEngineService(containerizationEngineBaseURL)
 	containerizationEngineController := controllers.NewContainerizationEngineController(containerizationEngineService)
 	containerizationEngineController.RegisterRoutes(router.PathPrefix("/api/v1").Subrouter())
 
-	err := http.ListenAndServe("localhost:8081", router)
+	// Start the server using TLS
+	err := http.ListenAndServeTLS(":8440", "./../cert.pem", "./../key.pem", router)
 	if err != nil {
 		fmt.Println(err)
-		return
+		log.Fatal("Server error:", err)
 	}
 }
