@@ -3,7 +3,6 @@ package services
 import (
 	"auth/models"
 	"context"
-	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
@@ -62,6 +61,5 @@ func hashPassword(password string) (string, error) {
 }
 
 func comparePasswords(hashedPassword, password string) error {
-	fmt.Println(hashedPassword, password)
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }

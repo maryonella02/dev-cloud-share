@@ -4,9 +4,13 @@ import (
 	"auth/models"
 	"auth/services"
 	"encoding/json"
+	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/mux"
 	"net/http"
+	"time"
 )
+
+var jwtKey = []byte("your_secret_key")
 
 type Controller struct {
 	authService *services.Service
@@ -66,11 +70,29 @@ func (ac *Controller) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = json.Marshal(user)
+	// Create the JWT token
+	token := jwt.New(jwt.SigningMethodHS256)
+
+	claims := token.Claims.(jwt.MapClaims)
+
+	claims["username"] = user.Username
+	claims["authorized"] = true
+	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
+
+	tokenString, err := token.SignedString(jwtKey)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	response := struct {
+		Token string `json:"token"`
+	}{
+		Token: tokenString,
+	}
+
+	json.NewEncoder(w).Encode(response)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
