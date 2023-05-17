@@ -35,7 +35,10 @@ func (ac *Controller) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := json.Marshal(registeredUser)
+	// Clear the password before sending the response
+	registeredUser.Password = ""
+
+	_, err = json.Marshal(registeredUser)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -43,7 +46,6 @@ func (ac *Controller) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	w.Write(response)
 }
 
 func (ac *Controller) LoginUser(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +66,7 @@ func (ac *Controller) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := json.Marshal(user)
+	_, err = json.Marshal(user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -72,5 +74,4 @@ func (ac *Controller) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(response)
 }

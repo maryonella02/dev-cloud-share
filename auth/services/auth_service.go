@@ -3,8 +3,10 @@ package services
 import (
 	"auth/models"
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Service struct {
@@ -17,7 +19,14 @@ func NewAuthService(client *mongo.Client) *Service {
 }
 
 func (s *Service) RegisterUser(ctx context.Context, user *models.User) (*models.User, error) {
-	_, err := s.db.InsertOne(ctx, user)
+	hashedPassword, err := hashPassword(user.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	user.Password = hashedPassword
+
+	_, err = s.db.InsertOne(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -32,5 +41,27 @@ func (s *Service) LoginUser(ctx context.Context, username, password string) (*mo
 		return nil, err
 	}
 
+	err = comparePasswords(user.Password, password)
+	if err != nil {
+		return nil, err
+	}
+
+	// Clear the password before returning the user object
+	user.Password = ""
+
 	return &user, nil
+}
+
+func hashPassword(password string) (string, error) {
+	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+
+	return string(hashedBytes), nil
+}
+
+func comparePasswords(hashedPassword, password string) error {
+	fmt.Println(hashedPassword, password)
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
