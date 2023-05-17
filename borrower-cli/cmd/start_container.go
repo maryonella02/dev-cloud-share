@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"dev-cloud-share/borrower-cli/helpers"
+	"borrower-cli/helpers"
 	"fmt"
 	"github.com/spf13/cobra"
 	"net/http"

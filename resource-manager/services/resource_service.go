@@ -2,13 +2,13 @@ package services
 
 import (
 	"context"
-	"dev-cloud-share/resource-manager/config"
-	"dev-cloud-share/resource-manager/models"
 	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"resource-manager/config"
+	"resource-manager/models"
 	"time"
 )
 

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"dev-cloud-share/containerization-engine/controllers"
-	"dev-cloud-share/containerization-engine/services"
+	"containerization-engine/controllers"
+	"containerization-engine/services"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"

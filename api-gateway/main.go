@@ -1,8 +1,8 @@
 package main
 
 import (
-	"dev-cloud-share/api-gateway/controllers"
-	"dev-cloud-share/api-gateway/services"
+	"api-gateway/controllers"
+	"api-gateway/services"
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
