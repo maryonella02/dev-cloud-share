@@ -35,9 +35,9 @@ func (s *Service) RegisterUser(ctx context.Context, user *models.User) (*models.
 	return user, nil
 }
 
-func (s *Service) LoginUser(ctx context.Context, username, password string) (*models.User, error) {
+func (s *Service) LoginUser(ctx context.Context, email, password string) (*models.User, error) {
 	var user models.User
-	err := s.db.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+	err := s.db.FindOne(ctx, bson.M{"email": email}).Decode(&user)
 	if err != nil {
 		return nil, err
 	}

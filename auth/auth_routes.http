@@ -2,7 +2,7 @@
 ### Register User
 ###
 
-POST http://localhost:8083/register
+POST https://localhost:8443/register
 Content-Type: application/json
 
 {
@@ -15,7 +15,7 @@ Content-Type: application/json
 ### Login User
 ###
 
-POST http://localhost:8083/login
+POST https://localhost:8443/login
 Content-Type: application/json
 
 {

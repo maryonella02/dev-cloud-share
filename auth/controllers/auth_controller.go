@@ -54,7 +54,7 @@ func (ac *Controller) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 func (ac *Controller) LoginUser(w http.ResponseWriter, r *http.Request) {
 	var loginInfo struct {
-		Username string `json:"username"`
+		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
 
@@ -64,7 +64,7 @@ func (ac *Controller) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := ac.authService.LoginUser(r.Context(), loginInfo.Username, loginInfo.Password)
+	user, err := ac.authService.LoginUser(r.Context(), loginInfo.Email, loginInfo.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
