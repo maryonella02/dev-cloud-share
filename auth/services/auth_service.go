@@ -30,6 +30,8 @@ func (s *Service) RegisterUser(ctx context.Context, user *models.User) (*models.
 		return nil, err
 	}
 
+	// Clear the password before returning the user object
+	user.Password = ""
 	return user, nil
 }
 
@@ -47,7 +49,6 @@ func (s *Service) LoginUser(ctx context.Context, username, password string) (*mo
 
 	// Clear the password before returning the user object
 	user.Password = ""
-
 	return &user, nil
 }
 
