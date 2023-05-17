@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"dev-cloud-share/resource-manager/controllers"
-	"dev-cloud-share/resource-manager/services"
 	"go.mongodb.org/mongo-driver/bson"
 	"log"
 	"net/http"
+	"resource-manager/controllers"
+	"resource-manager/services"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
