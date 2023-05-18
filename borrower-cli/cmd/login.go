@@ -27,7 +27,7 @@ func init() {
 var Token string
 var loginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "Login as a lender",
+	Short: "Login as a borrower",
 	Run: func(cmd *cobra.Command, args []string) {
 		username := getUsername()
 		password := getPassword()
@@ -37,7 +37,7 @@ var loginCmd = &cobra.Command{
 			Password: password,
 		}
 
-		fmt.Printf("Logging in as lender: Username: %s\n", username)
+		fmt.Printf("Logging in as borrower: Username: %s\n", username)
 
 		Token = loginUser(user)
 		err := os.WriteFile("token.txt", []byte(Token), 0644)
@@ -52,7 +52,7 @@ var loginCmd = &cobra.Command{
 
 var registerCmd = &cobra.Command{
 	Use:   "register",
-	Short: "Register as a lender",
+	Short: "Register as a borrower",
 	Run: func(cmd *cobra.Command, args []string) {
 		username := getUsername()
 		password := getPassword()
@@ -64,7 +64,7 @@ var registerCmd = &cobra.Command{
 			Role:     role,
 		}
 
-		fmt.Printf("Registering as lender: Username: %s", username)
+		fmt.Printf("Registering as borrower: Username: %s", username)
 
 		Token = registerUser(user)
 		fmt.Printf("Registration successful. Token: %s\n", Token)
@@ -154,5 +154,5 @@ func getPassword() string {
 }
 
 func getRole() string {
-	return "lender"
+	return "borrower"
 }

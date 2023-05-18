@@ -11,3 +11,10 @@ func GetContainerID() (string, error) {
 	}
 	return string(containerID), nil
 }
+func GetToken() (string, error) {
+	token, err := os.ReadFile("token.txt")
+	if err != nil {
+		return "", err
+	}
+	return string(token), nil
+}
