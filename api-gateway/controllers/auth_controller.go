@@ -22,7 +22,7 @@ func (ac *AuthController) RegisterRoutes(router *mux.Router) {
 }
 
 func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
-	email, err := ac.authService.ProxyRequestWithToken(w, r, "/login", "POST")
+	email, err := ac.authService.ProxyRequestWithToken(w, r, "/login", "POST", nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -42,7 +42,22 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 func (ac *AuthController) Register(w http.ResponseWriter, r *http.Request) {
-	email, err := ac.authService.ProxyRequestWithToken(w, r, "/register", "POST")
+	var registrationData struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+		Role     string `json:"role"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&registrationData)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	registerData := map[string]any{
+		"email":    registrationData.Email,
+		"password": registrationData.Password,
+	}
+	email, err := ac.authService.ProxyRequestWithToken(w, r, "/register", "POST", registerData)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return

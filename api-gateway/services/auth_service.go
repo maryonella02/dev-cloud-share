@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt"
@@ -20,17 +21,29 @@ func NewAuthService(serviceURL string) *AuthService {
 	}
 }
 
-func (as *AuthService) ProxyRequestWithToken(w http.ResponseWriter, r *http.Request, endpoint, method string) (string, error) {
+func (as *AuthService) ProxyRequestWithToken(w http.ResponseWriter, r *http.Request, endpoint, method string, body any) (string, error) {
 	target := as.ServiceURL + endpoint
-	req, err := http.NewRequest(method, target, r.Body)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return "", err
-	}
+	var req *http.Request
+	var err error
+	if body != nil {
+		requestBodyBytes, err := json.Marshal(body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return "", err
+		}
 
-	// Copy headers from original request to the new request
-	for k, v := range r.Header {
-		req.Header[k] = v
+		req, err = http.NewRequest(method, target, bytes.NewBuffer(requestBodyBytes))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return "", err
+		}
+	} else {
+		req, err = http.NewRequest(method, target, r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return "", err
+		}
+
 	}
 
 	client := &http.Client{}
