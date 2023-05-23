@@ -70,7 +70,7 @@ func registerResource(resource Resource) {
 	if Token == "" {
 		token, err = getToken()
 		if err != nil {
-			fmt.Println("Error reading container ID:", err)
+			fmt.Println("Error reading token:", err)
 		}
 	} else {
 		token = Token

@@ -14,7 +14,7 @@ import (
 )
 
 type User struct {
-	Username string `json:"username"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 	Role     string `json:"role"`
 }
@@ -29,15 +29,15 @@ var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Login as a lender",
 	Run: func(cmd *cobra.Command, args []string) {
-		username := getUsername()
+		email := getEmail()
 		password := getPassword()
 
 		user := User{
-			Username: username,
+			Email:    email,
 			Password: password,
 		}
 
-		fmt.Printf("Logging in as lender: Username: %s\n", username)
+		fmt.Printf("Logging in as lender: Email: %s\n", email)
 
 		Token = loginUser(user)
 		err := os.WriteFile("token.txt", []byte(Token), 0644)
@@ -54,20 +54,25 @@ var registerCmd = &cobra.Command{
 	Use:   "register",
 	Short: "Register as a lender",
 	Run: func(cmd *cobra.Command, args []string) {
-		username := getUsername()
+		email := getEmail()
 		password := getPassword()
 		role := getRole()
 
 		user := User{
-			Username: username,
+			Email:    email,
 			Password: password,
 			Role:     role,
 		}
 
-		fmt.Printf("Registering as lender: Username: %s", username)
+		fmt.Printf("Registering as lender: Email: %s", email)
 
 		Token = registerUser(user)
-		fmt.Printf("Registration successful. Token: %s\n", Token)
+		if Token != "" {
+			fmt.Printf("Registration successful. Token: %s\n", Token)
+
+		} else {
+			fmt.Printf("Registration failed.")
+		}
 	},
 }
 
@@ -75,7 +80,7 @@ type Response struct {
 	Token string `json:"token"`
 }
 
-func loginUser(user User) string {
+func loginUser(user any) string {
 	apiGatewayURL := "https://localhost:8440/api/v1/login"
 
 	jsonData, err := json.Marshal(user)
@@ -101,7 +106,7 @@ func loginUser(user User) string {
 	return ""
 }
 
-func registerUser(user User) string {
+func registerUser(user any) string {
 	apiGatewayURL := "https://localhost:8440/api/v1/register"
 
 	jsonData, err := json.Marshal(user)
@@ -128,15 +133,15 @@ func registerUser(user User) string {
 }
 
 // Helper functions to get input from the user
-func getUsername() string {
-	fmt.Print("Enter username: ")
-	var username string
-	_, err := fmt.Scanln(&username)
+func getEmail() string {
+	fmt.Print("Enter email: ")
+	var email string
+	_, err := fmt.Scanln(&email)
 	if err != nil {
-		fmt.Println("Error reading username:", err)
+		fmt.Println("Error reading email:", err)
 		os.Exit(1)
 	}
-	return strings.TrimSpace(username)
+	return strings.TrimSpace(email)
 }
 
 func getPassword() string {
