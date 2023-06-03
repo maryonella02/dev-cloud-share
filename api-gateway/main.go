@@ -34,7 +34,8 @@ func main() {
 	containerizationEngineController.RegisterRoutes(router.PathPrefix("/api/v1").Subrouter())
 
 	// Start the server using TLS
-	err := http.ListenAndServeTLS(":8440", "./../cert.pem", "./../key.pem", router)
+	err := http.ListenAndServeTLS(":8440", "./certs/cert.pem", "./certs/key.pem", router)
+
 	if err != nil {
 		fmt.Println(err)
 		log.Fatal("Server error:", err)
