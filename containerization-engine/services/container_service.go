@@ -95,3 +95,6 @@ func convertEnvMapToSlice(envMap map[string]string) []string {
 
 	return env
 }
+
+// TODO:  docker stats name/id
+// TODO:  docker inspect name/id
