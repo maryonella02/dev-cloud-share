@@ -57,3 +57,5 @@ func startContainer(containerIDFlag string) {
 
 //./borrower-cli start-container --id 99d69fd86a9eda71ff46793af442031f303e246cdbbfcf226bbc3fab09a31768
 //./borrower-cli start-container
+
+// TODO: add container name flag to control container with name, not ID
