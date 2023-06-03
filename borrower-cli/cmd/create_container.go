@@ -35,7 +35,7 @@ func init() {
 
 func createContainer(image string, cpuCores, memoryMB int) {
 	// Convert CPU cores to nano-cpus (10^-9)
-	nanoCPUs := int64(cpuCores * 1000000000)
+	nanoCPUs := int64(cpuCores * 1e9)
 
 	// Convert memory limit to bytes
 	memoryBytes := int64(memoryMB * 1024 * 1024)

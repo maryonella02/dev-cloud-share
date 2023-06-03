@@ -40,7 +40,12 @@ func (cs *ContainerService) CreateContainer(config models.ContainerConfig) (stri
 			Cmd:   config.Command,
 			Env:   convertEnvMapToSlice(config.Environment),
 		},
-		&container.HostConfig{},
+		&container.HostConfig{
+			Resources: container.Resources{
+				Memory:   config.Memory,
+				NanoCPUs: config.NanoCPUs,
+			},
+		},
 		&network.NetworkingConfig{},
 		nil, "",
 	)
