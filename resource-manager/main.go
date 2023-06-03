@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"log"
 	"net/http"
@@ -13,9 +14,18 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// Set the MongoDB connection details
+const (
+	mongoHost = "172.17.0.2"
+	mongoPort = "27017"
+)
+
+// Create a MongoDB connection string
+var connectionString = fmt.Sprintf("mongodb://%s:%s", mongoHost, mongoPort)
+
 func main() {
 	// Set up MongoDB connection
-	clientOptions := options.Client().ApplyURI("mongodb://mongo:27017")
+	clientOptions := options.Client().ApplyURI(connectionString)
 	client, err := mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
 		log.Fatal(err)
