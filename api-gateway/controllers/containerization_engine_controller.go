@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"dev-cloud-share/api-gateway/services"
+	"api-gateway/services"
 	"github.com/gorilla/mux"
 	"net/http"
 )

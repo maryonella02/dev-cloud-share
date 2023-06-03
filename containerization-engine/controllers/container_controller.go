@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"dev-cloud-share/containerization-engine/models"
-	"dev-cloud-share/containerization-engine/services"
+	"containerization-engine/models"
+	"containerization-engine/services"
 	"encoding/json"
 	"io"
 	"net/http"

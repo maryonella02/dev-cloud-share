@@ -28,7 +28,7 @@ func init() {
 }
 func createContainer(image string) {
 	// Prepare the POST request
-	url := "http://localhost:8081/api/v1/containers"
+	url := "https://localhost:8440/api/v1/containers"
 	payload := map[string]interface{}{
 		"image": image,
 	}

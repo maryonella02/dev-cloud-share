@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"borrower-cli/helpers"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -35,7 +36,7 @@ type ResourceRequest struct {
 	MinStorageGB int    `json:"min_storage_gb"`
 }
 
-const APIAllocationsURL = "http://localhost:8081/api/v1/allocations"
+const APIAllocationsURL = "https://localhost:8440/api/v1/allocations"
 
 var requestCmd = &cobra.Command{
 	Use:   "request",
@@ -70,7 +71,17 @@ var requestCmd = &cobra.Command{
 			return err
 		}
 		req.Header.Set("Content-Type", "application/json")
+		var token string
+		if Token == "" {
+			token, err = helpers.GetToken()
+			if err != nil {
+				fmt.Println("Error reading container ID:", err)
+			}
+		} else {
+			token = Token
+		}
 
+		req.Header.Add("Authorization", "Bearer "+token)
 		resp, err := client.Do(req)
 		if err != nil {
 			return err

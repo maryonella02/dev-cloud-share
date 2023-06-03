@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 )
 
 // Resource represents the resource structure to send to the Resource Manager
@@ -55,18 +56,35 @@ var lendCmd = &cobra.Command{
 }
 
 func registerResource(resource Resource) {
-	apiGatewayURL := "http://localhost:8081/api/v1/resources"
+	apiGatewayURL := "https://localhost:8440/api/v1/resources"
 
 	// Marshal the resource data into JSON
 	jsonData, err := json.Marshal(resource)
 	if err != nil {
 		log.Fatalf("Error marshalling resource data: %v", err)
 	}
+	body := bytes.NewReader(jsonData)
+	req, _ := http.NewRequest("POST", apiGatewayURL, body)
+	req.Header.Add("Content-Type", "application/json")
+	var token string
+	if Token == "" {
+		token, err = getToken()
+		if err != nil {
+			fmt.Println("Error reading token:", err)
+		}
+	} else {
+		token = Token
+	}
 
-	// Send an HTTP POST request to the Resource Manager with the JSON data
-	resp, err := http.Post(apiGatewayURL, "application/json", bytes.NewBuffer(jsonData))
+	req.Header.Add("Authorization", "Bearer "+token)
+	fmt.Println(req.Header)
+
+	// Send the POST request
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatalf("Error sending HTTP request to Resource Manager: %v", err)
+		fmt.Println("Error making request:", err)
+		return
 	}
 	defer resp.Body.Close()
 
@@ -81,6 +99,14 @@ func registerResource(resource Resource) {
 	} else {
 		log.Fatalf("Error registering resource: status code %d", resp.StatusCode)
 	}
+}
+
+func getToken() (string, error) {
+	token, err := os.ReadFile("token.txt")
+	if err != nil {
+		return "", err
+	}
+	return string(token), nil
 }
 
 //./lender-cli lend --resource-type vm --cpu-cores 2 --memory-mb 1024 --storage-gb 2

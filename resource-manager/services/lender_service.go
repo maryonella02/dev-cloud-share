@@ -2,10 +2,10 @@ package services
 
 import (
 	"context"
-	"dev-cloud-share/resource-manager/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"resource-manager/models"
 )
 
 type LenderService struct {

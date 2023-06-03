@@ -1,0 +1,25 @@
+###
+### Register User
+###
+
+POST https://localhost:8440/api/v1/register
+Content-Type: application/json
+
+{
+  "email": "john_doe",
+  "password": "secretpassword",
+  "role": "lender"
+}
+
+
+###
+### Login User
+###
+
+POST https://localhost:8440/api/v1/login
+Content-Type: application/json
+
+{
+  "email": "john_doe",
+  "password": "secretpassword"
+}

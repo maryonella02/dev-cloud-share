@@ -1,6 +1,7 @@
 ### Register a new resource
-POST http://localhost:8081/api/v1/resources
+POST https://localhost:8440/api/v1/resources
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG5fZG9lIn0.biDOjHSPxjIWUsmik0YpW-7SwXhT2g48F2UVVSrie4U
 
 {
   "type": "example_type",
@@ -10,10 +11,12 @@ Content-Type: application/json
 }
 
 ### Get all resources
-GET http://localhost:8081/api/v1/resources
+GET https://localhost:8440/api/v1/resources
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG5fZG9lIn0.biDOjHSPxjIWUsmik0YpW-7SwXhT2g48F2UVVSrie4U
+
 
 ### Update a resource
-PUT http://localhost:8081/api/v1/resources/64468d2410bc4dfaaad85429
+PUT https://localhost:8440/api/v1/resources/64468d2410bc4dfaaad85429
 Content-Type: application/json
 
 {
@@ -24,10 +27,10 @@ Content-Type: application/json
 }
 
 ### Delete a resource
-DELETE http://localhost:8081/api/v1/resources/64468d2410bc4dfaaad85429
+DELETE https://localhost:8440/api/v1/resources/64468d2410bc4dfaaad85429
 
 ### Allocate a resource
-POST http://localhost:8081/api/v1/allocations
+POST https://localhost:8440/api/v1/allocations
 Content-Type: application/json
 
 {
@@ -41,10 +44,10 @@ Content-Type: application/json
 }
 
 ### Release a resource
-DELETE http://localhost:8081/api/v1/allocations/6447e82ed4e0efa0cf66a8ed
+DELETE https://localhost:8440/api/v1/allocations/6447e82ed4e0efa0cf66a8ed
 
 ### Create borrower
-POST http://localhost:8081/api/v1/borrowers
+POST https://localhost:8440/api/v1/borrowers
 Content-Type: application/json
 
 {
@@ -52,7 +55,7 @@ Content-Type: application/json
 }
 
 ### Create lender
-POST http://localhost:8081/api/v1/lenders
+POST https://localhost:8440/api/v1/lenders
 Content-Type: application/json
 
 {

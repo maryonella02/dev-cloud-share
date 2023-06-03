@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"borrower-cli/helpers"
 	"fmt"
 	"github.com/spf13/cobra"
 	"net/http"
@@ -34,6 +35,17 @@ func releaseResource(resourceID string) error {
 	if err != nil {
 		return err
 	}
+	var token string
+	if Token == "" {
+		token, err = helpers.GetToken()
+		if err != nil {
+			fmt.Println("Error reading container ID:", err)
+		}
+	} else {
+		token = Token
+	}
+
+	req.Header.Add("Authorization", "Bearer "+token)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {

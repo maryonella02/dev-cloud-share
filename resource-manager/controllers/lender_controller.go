@@ -1,11 +1,11 @@
 package controllers
 
 import (
-	"dev-cloud-share/resource-manager/models"
-	"dev-cloud-share/resource-manager/services"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"resource-manager/models"
+	"resource-manager/services"
 )
 
 type LenderController struct {
