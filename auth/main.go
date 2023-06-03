@@ -17,9 +17,17 @@ import (
 	"auth/services"
 )
 
+// Set the MongoDB connection details
+const (
+	mongoHost = "172.17.0.2"
+	mongoPort = "27017"
+)
+
+// Create a MongoDB connection string
+var connectionString = fmt.Sprintf("mongodb://%s:%s", mongoHost, mongoPort)
+
 func main() {
-	mongoURI := "mongodb://localhost:27017"
-	client, err := mongo.NewClient(options.Client().ApplyURI(mongoURI))
+	client, err := mongo.NewClient(options.Client().ApplyURI(connectionString))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,7 +53,7 @@ func main() {
 	// Start server in a separate goroutine
 	go func() {
 		fmt.Println("Starting server on port 8443")
-		err = server.ListenAndServeTLS("./../cert.pem", "./../key.pem")
+		err = server.ListenAndServeTLS("./certs/cert.pem", "./certs/key.pem")
 		if err != nil {
 			log.Fatal(err)
 		}
