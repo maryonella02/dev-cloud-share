@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	resourceManagerBaseURL        = "http://localhost:8080"
-	containerizationEngineBaseURL = "http://localhost:8082"
-	authServiceBaseURL            = "https://localhost:8443"
+	resourceManagerBaseURL        = "http://resource-manager:8080"
+	containerizationEngineBaseURL = "http://containerization-engine:8082"
+	authServiceBaseURL            = "https://auth:8443"
 )
 
 func main() {
