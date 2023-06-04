@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"borrower-cli/helpers"
+	"crypto/tls"
 	"fmt"
 	"github.com/spf13/cobra"
 	"net/http"
@@ -43,7 +44,12 @@ func stopContainer(containerIDFlag string) {
 		return
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error making request:", err)
 		return

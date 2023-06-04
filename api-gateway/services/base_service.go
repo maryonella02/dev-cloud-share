@@ -1,6 +1,7 @@
 package services
 
 import (
+	"crypto/tls"
 	"io"
 	"net/http"
 )
@@ -22,7 +23,12 @@ func (bs *BaseService) ProxyRequest(w http.ResponseWriter, r *http.Request, endp
 		req.Header[k] = v
 	}
 
-	client := &http.Client{}
+	// Create a custom HTTP client with insecure TLS configuration
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

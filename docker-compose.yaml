@@ -1,0 +1,80 @@
+version: '3.9'
+
+services:
+  resource-manager:
+    build:
+      dockerfile: Dockerfile
+      context: resource-manager
+    container_name: resource-manager
+    expose:
+      - "8080"
+    ports:
+      - "8080:8080"
+    environment:
+      - MONGO_HOST=cloud-share-db
+      - MONGO_PORT=27017
+    networks:
+      - dev-cloud-share-test
+    hostname: resource-manager
+
+  api-gateway:
+    build:
+      dockerfile: Dockerfile
+      context: api-gateway
+    container_name: api-gateway
+    expose:
+      - "8440"
+    ports:
+      - "8440:8440"
+    networks:
+      - dev-cloud-share-test
+    hostname: api-gateway
+
+  auth:
+    build:
+      dockerfile: Dockerfile
+      context: auth
+    container_name: auth
+    expose:
+      - "8443"
+    ports:
+      - "8443:8443"
+    environment:
+      - MONGO_HOST=cloud-share-db
+      - MONGO_PORT=27017
+    networks:
+      - dev-cloud-share-test
+    hostname: auth
+
+  containerization-engine:
+    build:
+      dockerfile: Dockerfile
+      context: containerization-engine
+    container_name: containerization-engine
+    expose:
+      - "8082"
+    ports:
+      - "8082:8082"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - MONGO_HOST=cloud-share-db
+      - MONGO_PORT=27017
+    networks:
+      - dev-cloud-share-test
+    hostname: containerization-engine
+
+  cloud-share-db:
+    image: mongo
+    container_name: cloud-share-db
+    expose:
+      - "27017"
+    ports:
+      - "27017:27017"
+    networks:
+      - dev-cloud-share-test
+    command: mongod --quiet --logpath /dev/null
+
+networks:
+  dev-cloud-share-test:
+    driver: bridge

@@ -3,6 +3,7 @@ package cmd
 import (
 	"borrower-cli/helpers"
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -64,7 +65,12 @@ var requestCmd = &cobra.Command{
 
 		fmt.Printf("Requesting resources: Type: %s, CPU Cores: %d, Memory: %d MB, Storage: %d GB\n", resourceType, minCPUCores, minMemoryMB, minStorageGB)
 
-		client := &http.Client{}
+		// Create a custom HTTP client with insecure TLS configuration
+		client := &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
+		}
 		requestJSON, _ := json.Marshal(allocationInfo)
 		req, err := http.NewRequest("POST", APIAllocationsURL, bytes.NewReader(requestJSON))
 		if err != nil {
