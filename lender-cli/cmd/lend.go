@@ -14,18 +14,14 @@ import (
 
 // Resource represents the resource structure to send to the Resource Manager
 type Resource struct {
-	ResourceType string `json:"type"`
-	CPUCores     int    `json:"cpu_cores"`
-	MemoryMB     int    `json:"memory_mb"`
-	StorageGB    int    `json:"storage_gb"`
-	LenderID     string `json:"lender_id,omitempty"`
+	CPUCores int    `json:"cpu_cores"`
+	MemoryMB int    `json:"memory_mb"`
+	LenderID string `json:"lender_id,omitempty"`
 }
 
 func init() {
-	lendCmd.Flags().String("resource-type", "", "Resource type (required)")
 	lendCmd.Flags().Int("cpu-cores", 0, "CPU cores to request")
 	lendCmd.Flags().Int("memory-mb", 0, "Memory in MB to request")
-	lendCmd.Flags().Int("storage-gb", 0, "Storage in GB to request")
 	rootCmd.AddCommand(lendCmd)
 }
 
@@ -34,22 +30,18 @@ var lendCmd = &cobra.Command{
 	Short: "Lend resources to the Resource Manager",
 	Long:  `This command allows lenders to specify resources they want to lend, such as CPU, RAM, and storage.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		resourceType, _ := cmd.Flags().GetString("resource-type")
 		cpuCores, _ := cmd.Flags().GetInt("cpu-cores")
 		memoryMB, _ := cmd.Flags().GetInt("memory-mb")
-		storageGB, _ := cmd.Flags().GetInt("storage-gb")
 
 		// Create a resource instance
 		resource := Resource{
-			ResourceType: resourceType,
-			CPUCores:     cpuCores,
-			MemoryMB:     memoryMB,
-			StorageGB:    storageGB,
-			LenderID:     "6447e7e8d4e0efa0cf66a8ec",
+			CPUCores: cpuCores,
+			MemoryMB: memoryMB,
+			LenderID: "6447e7e8d4e0efa0cf66a8ec",
 		}
 		// TODO: add normal lender auth
 
-		fmt.Printf("Lending resources: Type: %s, CPU Cores: %d, Memory: %d MB, Storage: %d GB\n", resourceType, cpuCores, memoryMB, storageGB)
+		fmt.Printf("Lending resources: CPU Cores: %d, Memory: %d MB \n", cpuCores, memoryMB)
 
 		// Send the resource data to the Resource Manager
 		registerResource(resource)
@@ -114,4 +106,4 @@ func getToken() (string, error) {
 	return string(token), nil
 }
 
-//./lender-cli lend --resource-type vm --cpu-cores 2 --memory-mb 1024 --storage-gb 2
+//./lender-cli lend  --cpu-cores 2 --memory-mb 1024
