@@ -10,4 +10,5 @@ COPY . .
 
 RUN go build -o auth .
 
+EXPOSE 8443
 CMD ["./auth"]

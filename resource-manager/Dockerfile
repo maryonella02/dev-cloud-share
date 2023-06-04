@@ -8,4 +8,5 @@ COPY . .
 
 RUN go build -o resource-manager .
 
+EXPOSE 8080
 CMD ["./resource-manager"]

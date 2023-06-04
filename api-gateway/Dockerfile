@@ -10,7 +10,7 @@ COPY . .
 
 RUN go build -o api-gateway .
 
-
+EXPOSE 8440
 CMD ["./api-gateway"]
 
 
