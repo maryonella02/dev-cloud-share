@@ -40,7 +40,7 @@ func releaseResource(resourceID string) error {
 	if Token == "" {
 		token, err = helpers.GetToken()
 		if err != nil {
-			fmt.Println("Error reading container ID:", err)
+			fmt.Println("Error reading token:", err)
 		}
 	} else {
 		token = Token

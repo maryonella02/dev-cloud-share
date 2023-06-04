@@ -15,26 +15,17 @@ import (
 func init() {
 	rootCmd.AddCommand(requestCmd)
 
-	requestCmd.Flags().String("resource-type", "", "Resource type (required)")
-	requestCmd.Flags().Int("min-cpu-cores", 0, "Minimum number of CPU cores to request")
-	requestCmd.Flags().Int("min-memory-mb", 0, "Minimum memory in MB to request")
-	requestCmd.Flags().Int("min-storage-gb", 0, "Minimum storage in GB to request")
-
-	// Mark the "type" flag as required
-	requestCmd.MarkFlagRequired("resource-type")
+	requestCmd.Flags().Int("max-cpu-cores", 0, "Maximum number of CPU cores to request")
+	requestCmd.Flags().Int("max-memory-mb", 0, "Maximum memory in MB to request")
 
 	// Bind flags to Viper configuration
-	viper.BindPFlag("resource-type", requestCmd.Flags().Lookup("resource-type"))
-	viper.BindPFlag("min-cpu-cores", requestCmd.Flags().Lookup("min-cpu-cores"))
-	viper.BindPFlag("min-memory-mb", requestCmd.Flags().Lookup("min-memory-mb"))
-	viper.BindPFlag("min-storage-gb", requestCmd.Flags().Lookup("min-storage-gb"))
+	viper.BindPFlag("max-cpu-cores", requestCmd.Flags().Lookup("max-cpu-cores"))
+	viper.BindPFlag("max-memory-mb", requestCmd.Flags().Lookup("max-memory-mb"))
 }
 
-type ResourceRequest struct {
-	ResourceType string `json:"resource_type"`
-	MinCPUCores  int    `json:"min_cpu_cores"`
-	MinMemoryMB  int    `json:"min_memory_mb"`
-	MinStorageGB int    `json:"min_storage_gb"`
+type Resource struct {
+	CPUCores int `json:"cpu_cores"`
+	MemoryMB int `json:"memory_mb"`
 }
 
 const APIAllocationsURL = "https://localhost:8440/api/v1/allocations"
@@ -43,27 +34,23 @@ var requestCmd = &cobra.Command{
 	Use:   "request",
 	Short: "Request resources from the Resource Manager",
 	Long:  `This command allows borrowers to specify resources they want to request, such as CPU, RAM, and storage.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		resourceType, _ := cmd.Flags().GetString("resource-type")
-		minCPUCores, _ := cmd.Flags().GetInt("min-cpu-cores")
-		minMemoryMB, _ := cmd.Flags().GetInt("min-memory-mb")
-		minStorageGB, _ := cmd.Flags().GetInt("min-storage-gb")
+	Run: func(cmd *cobra.Command, args []string) {
+		minCPUCores, _ := cmd.Flags().GetInt("max-cpu-cores")
+		minMemoryMB, _ := cmd.Flags().GetInt("max-memory-mb")
 
 		var allocationInfo struct {
-			BorrowerID      string          `json:"borrower_id"`
-			ResourceRequest ResourceRequest `json:"resource_request"`
+			BorrowerID      string   `json:"borrower_id"`
+			ResourceRequest Resource `json:"resource"`
 		}
 
 		allocationInfo.BorrowerID = "6446df1322b3d57d49cc2264"
 		// TODO: add normal borrowerID identification and allocation
-		allocationInfo.ResourceRequest = ResourceRequest{
-			ResourceType: resourceType,
-			MinCPUCores:  minCPUCores,
-			MinMemoryMB:  minMemoryMB,
-			MinStorageGB: minStorageGB,
+		allocationInfo.ResourceRequest = Resource{
+			CPUCores: minCPUCores,
+			MemoryMB: minMemoryMB,
 		}
 
-		fmt.Printf("Requesting resources: Type: %s, CPU Cores: %d, Memory: %d MB, Storage: %d GB\n", resourceType, minCPUCores, minMemoryMB, minStorageGB)
+		fmt.Printf("Requesting resource with: CPU Cores: %d, Memory: %d MB", minCPUCores, minMemoryMB)
 
 		// Create a custom HTTP client with insecure TLS configuration
 		client := &http.Client{
@@ -74,14 +61,14 @@ var requestCmd = &cobra.Command{
 		requestJSON, _ := json.Marshal(allocationInfo)
 		req, err := http.NewRequest("POST", APIAllocationsURL, bytes.NewReader(requestJSON))
 		if err != nil {
-			return err
+			fmt.Printf("\nError requesting resource: %v\n", err)
 		}
 		req.Header.Set("Content-Type", "application/json")
 		var token string
 		if Token == "" {
 			token, err = helpers.GetToken()
 			if err != nil {
-				fmt.Println("Error reading container ID:", err)
+				fmt.Println("Error reading token:", err)
 			}
 		} else {
 			token = Token
@@ -90,24 +77,21 @@ var requestCmd = &cobra.Command{
 		req.Header.Add("Authorization", "Bearer "+token)
 		resp, err := client.Do(req)
 		if err != nil {
-			return err
+			fmt.Printf("\nError requesting resource: %v\n", err)
 		}
 
-		body, err := io.ReadAll(resp.Body)
+		_, err = io.ReadAll(resp.Body)
 		if err != nil {
-			fmt.Println(string(body))
-			fmt.Println(err)
-			return err
+			fmt.Printf("\nError requesting resource: %v\n", err)
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("failed to allocate resource: %s for body %s", string(body), string(requestJSON))
+			fmt.Printf("\nError requesting resource: %v status \n", resp.StatusCode)
+		} else {
+			fmt.Println("\nResource allocated successfully!")
 		}
-
-		fmt.Printf("Resource allocated successfully!")
-		return nil
 	},
 }
 
-// ./borrower-cli request --resource-type example_type --min-cpu-cores 4 --min-memory-mb 8192 --min-storage-gb 100
+// ./borrower-cli request  --max-cpu-cores 4 --max-memory-mb 8192

@@ -176,7 +176,7 @@ func getPassword() string {
 	fmt.Print("Enter password: ")
 	var password string
 	// Use terminal input without echoing the characters
-	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+	bytePassword, err := term.ReadPassword(syscall.Stdin)
 	fmt.Println() // Print a new line after reading the password
 	if err != nil {
 		fmt.Println("Error reading password:", err)

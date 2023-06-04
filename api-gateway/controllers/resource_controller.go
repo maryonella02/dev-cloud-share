@@ -18,6 +18,7 @@ func NewResourceController(resourceService *services.ResourceService) *ResourceC
 func (rc *ResourceController) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/resources", rc.registerResource).Methods("POST")
 	router.HandleFunc("/resources", rc.getResources).Methods("GET")
+	router.HandleFunc("/resources/free", rc.getFreeResources).Methods("GET")
 	router.HandleFunc("/resources/{resource_id}", rc.updateResource).Methods("PUT")
 	router.HandleFunc("/resources/{resource_id}", rc.deleteResource).Methods("DELETE")
 	router.HandleFunc("/allocations", rc.allocateResource).Methods("POST")
@@ -37,6 +38,13 @@ func (rc *ResourceController) registerResource(w http.ResponseWriter, r *http.Re
 
 func (rc *ResourceController) getResources(w http.ResponseWriter, r *http.Request) {
 	endpoint := "/resources"
+	err := rc.resourceService.ProxyRequest(w, r, endpoint, "GET")
+	if err != nil {
+		return
+	}
+}
+func (rc *ResourceController) getFreeResources(w http.ResponseWriter, r *http.Request) {
+	endpoint := "/resources/free"
 	err := rc.resourceService.ProxyRequest(w, r, endpoint, "GET")
 	if err != nil {
 		return

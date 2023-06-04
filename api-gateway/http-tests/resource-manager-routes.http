@@ -4,14 +4,12 @@ Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG5fZG9lIn0.biDOjHSPxjIWUsmik0YpW-7SwXhT2g48F2UVVSrie4U
 
 {
-  "type": "example_type",
   "cpu_cores": 4,
-  "memory_mb": 8192,
-  "storage_gb": 100
+  "memory_mb": 8192
 }
 
 ### Get all resources
-GET https://localhost:8440/api/v1/resources
+GET https://localhost:8440/api/v1/resources/free
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG5fZG9lIn0.biDOjHSPxjIWUsmik0YpW-7SwXhT2g48F2UVVSrie4U
 
 
@@ -20,10 +18,8 @@ PUT https://localhost:8440/api/v1/resources/64468d2410bc4dfaaad85429
 Content-Type: application/json
 
 {
-  "type": "updated_type",
   "cpu_cores": 6,
-  "memory_mb": 16384,
-  "storage_gb": 200
+  "memory_mb": 16384
 }
 
 ### Delete a resource
@@ -35,11 +31,9 @@ Content-Type: application/json
 
 {
   "borrower_id": "6446df1322b3d57d49cc2264",
-  "resource_request": {
-    "resource_type": "example_type",
-    "min_cpu_cores": 4,
-    "min_memory_mb": 8192,
-    "min_storage_gb": 100
+  "resource": {
+    "cpu_cores": 4,
+    "memory_mb": 8192
   }
 }
 

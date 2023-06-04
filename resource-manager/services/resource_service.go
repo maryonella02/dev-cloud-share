@@ -16,15 +16,6 @@ type ResourceService struct {
 	db *mongo.Database
 }
 
-type ResourceRequest struct {
-	ResourceType string `json:"resource_type"`
-	MinCPUCores  int    `json:"min_cpu_cores"`
-	MinMemoryMB  int    `json:"min_memory_mb"`
-	MinStorageGB int    `json:"min_storage_gb"`
-}
-
-// TODO: extend this struct further to include other factors such as availability, location, or cost
-
 func NewResourceService(db *mongo.Database) *ResourceService {
 	return &ResourceService{db}
 }
@@ -56,11 +47,9 @@ func (rs *ResourceService) UpdateResource(resourceID string, updatedResource *mo
 	filter := bson.M{"_id": id}
 	update := bson.M{
 		"$set": bson.M{
-			"type":       updatedResource.Type,
-			"cpu_cores":  updatedResource.CPUCores,
-			"memory_mb":  updatedResource.MemoryMB,
-			"storage_gb": updatedResource.StorageGB,
-			"lender_id":  updatedResource.LenderID,
+			"cpu_cores": updatedResource.CPUCores,
+			"memory_mb": updatedResource.MemoryMB,
+			"lender_id": updatedResource.LenderID,
 		},
 	}
 
@@ -78,15 +67,13 @@ func (rs *ResourceService) DeleteResource(resourceID string) error {
 
 var ErrResourceNotFound = errors.New("no suitable resource found")
 
-func (rs *ResourceService) AllocateResource(borrowerID string, request ResourceRequest) (*models.Resource, error) {
+func (rs *ResourceService) AllocateResource(borrowerID string, request models.Resource) (*models.Resource, error) {
 	bID, _ := primitive.ObjectIDFromHex(borrowerID)
 
 	// Find a resource that matches the request
 	filter := bson.M{
-		"type":       request.ResourceType,
-		"cpu_cores":  bson.M{"$gte": request.MinCPUCores},
-		"memory_mb":  bson.M{"$gte": request.MinMemoryMB},
-		"storage_gb": bson.M{"$gte": request.MinStorageGB},
+		"cpu_cores": bson.M{"$gte": request.CPUCores},
+		"memory_mb": bson.M{"$gte": request.MemoryMB},
 		"$or": []bson.M{
 			{"borrower_id": bson.M{"$exists": false}},
 			{"borrower_id": primitive.ObjectID{}},
@@ -193,21 +180,46 @@ func (rs *ResourceService) ReleaseResource(resourceID string) (*models.Resource,
 	resource.BorrowerID = primitive.NilObjectID
 	return &resource, nil
 }
+func (rs *ResourceService) GetFreeResources() ([]models.Resource, error) {
+	filter := bson.M{
+		"$or": []bson.M{
+			{"borrower_id": bson.M{"$exists": false}},
+			{"borrower_id": primitive.ObjectID{}},
+		},
+	}
+
+	var resources []models.Resource
+	cursor, err := rs.db.Collection("resources").Find(context.Background(), filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	for cursor.Next(context.Background()) {
+		var resource models.Resource
+		if err = cursor.Decode(&resource); err != nil {
+			return nil, err
+		}
+		resources = append(resources, resource)
+	}
+
+	if err = cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return resources, nil
+}
 
 func calculateUsageCost(resource models.Resource, duration time.Duration) (float64, error) {
 	// Get pricing config for the resource type
 	var pricingConfig config.PricingConfig
 	for _, pc := range config.PricingModel {
-		if pc.ResourceType == resource.Type {
-			pricingConfig = pc
-			break
-		}
+		pricingConfig = pc
 	}
 
 	hours := duration.Hours()
 	cost := pricingConfig.PricePerCore*float64(resource.CPUCores) +
-		pricingConfig.PricePerMB*float64(resource.MemoryMB) +
-		pricingConfig.PricePerGB*float64(resource.StorageGB)
+		pricingConfig.PricePerMB*float64(resource.MemoryMB)
 
 	return cost * hours, nil
 }

@@ -20,6 +20,7 @@ func NewResourceController(resourceService *services.ResourceService) *ResourceC
 func (rc *ResourceController) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/resources", rc.RegisterResource).Methods("POST")
 	router.HandleFunc("/resources", rc.GetResources).Methods("GET")
+	router.HandleFunc("/resources/free", rc.GetFreeResources).Methods("GET")
 	router.HandleFunc("/resources/{resource_id}", rc.UpdateResource).Methods("PUT")
 	router.HandleFunc("/resources/{resource_id}", rc.DeleteResource).Methods("DELETE")
 	router.HandleFunc("/allocations", rc.AllocateResource).Methods("POST")
@@ -94,19 +95,9 @@ func (rc *ResourceController) DeleteResource(w http.ResponseWriter, r *http.Requ
 
 func (rc *ResourceController) AllocateResource(w http.ResponseWriter, r *http.Request) {
 	var allocationInfo struct {
-		BorrowerID      string                   `json:"borrower_id"`
-		ResourceRequest services.ResourceRequest `json:"resource_request"`
+		BorrowerID string          `json:"borrower_id"`
+		Resource   models.Resource `json:"resource"`
 	}
-	// example of payload
-	//{
-	//	"borrower_id": "60a7f8370abf2f3b903bdbb0",
-	//		"resource_request": {
-	//		"resource_type": "CPU",
-	//			"min_cpu_cores": 4,
-	//			"min_memory_mb": 1024,
-	//			"min_storage_gb": 50
-	//	}
-	//}
 
 	err := json.NewDecoder(r.Body).Decode(&allocationInfo)
 	if err != nil {
@@ -114,7 +105,7 @@ func (rc *ResourceController) AllocateResource(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	response, err := rc.resourceService.AllocateResource(allocationInfo.BorrowerID, allocationInfo.ResourceRequest)
+	response, err := rc.resourceService.AllocateResource(allocationInfo.BorrowerID, allocationInfo.Resource)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -146,6 +137,20 @@ func (rc *ResourceController) ReleaseResource(w http.ResponseWriter, r *http.Req
 		Resource: releasedResource,
 	}
 	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+func (rc *ResourceController) GetFreeResources(w http.ResponseWriter, r *http.Request) {
+	resources, err := rc.resourceService.GetFreeResources()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(resources)
 	if err != nil {
 		fmt.Println(err)
 		return
