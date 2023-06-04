@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"log"
 	"net/http"
+	"os"
 	"resource-manager/controllers"
 	"resource-manager/services"
 
@@ -14,14 +15,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Set the MongoDB connection details
-const (
-	mongoHost = "172.17.0.2"
-	mongoPort = "27017"
-)
-
 // Create a MongoDB connection string
-var connectionString = fmt.Sprintf("mongodb://%s:%s", mongoHost, mongoPort)
+var connectionString = fmt.Sprintf("mongodb://%s:%s", os.Getenv("MONGO_HOST"), os.Getenv("MONGO_PORT"))
 
 func main() {
 	// Set up MongoDB connection

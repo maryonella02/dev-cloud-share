@@ -17,14 +17,8 @@ import (
 	"auth/services"
 )
 
-// Set the MongoDB connection details
-const (
-	mongoHost = "172.17.0.2"
-	mongoPort = "27017"
-)
-
 // Create a MongoDB connection string
-var connectionString = fmt.Sprintf("mongodb://%s:%s", mongoHost, mongoPort)
+var connectionString = fmt.Sprintf("mongodb://%s:%s", os.Getenv("MONGO_HOST"), os.Getenv("MONGO_PORT"))
 
 func main() {
 	client, err := mongo.NewClient(options.Client().ApplyURI(connectionString))
