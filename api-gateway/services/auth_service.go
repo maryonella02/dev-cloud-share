@@ -2,6 +2,7 @@ package services
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt"
@@ -28,28 +29,28 @@ func (as *AuthService) ProxyRequestWithToken(w http.ResponseWriter, r *http.Requ
 	if body != nil {
 		requestBodyBytes, err := json.Marshal(body)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return "", err
 		}
 
 		req, err = http.NewRequest(method, target, bytes.NewBuffer(requestBodyBytes))
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return "", err
 		}
 	} else {
 		req, err = http.NewRequest(method, target, r.Body)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return "", err
 		}
-
 	}
 
-	client := &http.Client{}
+	// Create a custom HTTP client with insecure TLS configuration
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
 	resp, err := client.Do(req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return "", err
 	}
 	defer resp.Body.Close()
@@ -58,7 +59,7 @@ func (as *AuthService) ProxyRequestWithToken(w http.ResponseWriter, r *http.Requ
 		// Return original response
 		_, err = io.Copy(w, resp.Body)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return "", err
 		}
 		return "", fmt.Errorf("please try again")
 	}

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -79,8 +80,12 @@ func registerResource(resource Resource) {
 	req.Header.Add("Authorization", "Bearer "+token)
 	fmt.Println(req.Header)
 
-	// Send the POST request
-	client := &http.Client{}
+	// Create a custom HTTP client with insecure TLS configuration
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error making request:", err)

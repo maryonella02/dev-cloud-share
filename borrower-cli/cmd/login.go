@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -87,8 +88,21 @@ func loginUser(user User) string {
 	if err != nil {
 		log.Fatalf("Error marshalling user data: %v", err)
 	}
+	req, err := http.NewRequest("POST", apiGatewayURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return ""
+	}
+	req.Header.Set("Content-Type", "application/json")
+	// Create a custom HTTP client with insecure TLS configuration
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
 
-	resp, err := http.Post(apiGatewayURL, "application/json", bytes.NewBuffer(jsonData))
+	// Make the request using the custom HTTP client
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatalf("Error sending HTTP request to API Gateway: %v", err)
 	}
@@ -114,7 +128,21 @@ func registerUser(user User) string {
 		log.Fatalf("Error marshalling user data: %v", err)
 	}
 
-	resp, err := http.Post(apiGatewayURL, "application/json", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", apiGatewayURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return ""
+	}
+	req.Header.Set("Content-Type", "application/json")
+	// Create a custom HTTP client with insecure TLS configuration
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	// Make the request using the custom HTTP client
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatalf("Error sending HTTP request to API Gateway: %v", err)
 	}
@@ -148,7 +176,7 @@ func getPassword() string {
 	fmt.Print("Enter password: ")
 	var password string
 	// Use terminal input without echoing the characters
-	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+	bytePassword, err := term.ReadPassword(syscall.Stdin)
 	fmt.Println() // Print a new line after reading the password
 	if err != nil {
 		fmt.Println("Error reading password:", err)

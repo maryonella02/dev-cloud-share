@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -54,8 +55,12 @@ func createContainer(image string, cpuCores, memoryMB int) {
 	req, _ := http.NewRequest("POST", url, body)
 	req.Header.Add("Content-Type", "application/json")
 
-	// Send the POST request
-	client := &http.Client{}
+	// Create a custom HTTP client with insecure TLS configuration
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error making request:", err)
